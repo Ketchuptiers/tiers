@@ -15,7 +15,14 @@
             --border: rgba(255, 255, 255, 0.1);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        /* POISTETAAN SININEN VÄLÄHDYS JA TEHDÄÄN HIENOMPI */
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            user-select: none; 
+            -webkit-tap-highlight-color: transparent; /* Poistaa sinisen korostuksen */
+        }
 
         body {
             background-color: var(--bg);
@@ -48,31 +55,38 @@
             font-family: 'Rajdhani', sans-serif;
             font-size: clamp(30px, 7vw, 64px);
             font-weight: 800;
-            letter-spacing: clamp(2px, 2vw, 15px);
+            letter-spacing: clamp(2px, 2vw, 12px);
             text-transform: uppercase;
             color: var(--accent);
             text-shadow: 0 0 30px var(--accent-glow);
             margin-bottom: 30px;
             text-align: center;
-            padding-top: 10px;
+            padding-top: 15px;
         }
 
-        /* SIDEBAR & FIXED MENU BUTTON */
+        /* MENU BUTTON FIX */
         .menu-btn {
             position: fixed;
-            top: 15px; /* Nostettu ylemmäs */
-            right: 15px;
+            top: 20px;
+            right: 20px;
             z-index: 1000;
             cursor: pointer;
             background: var(--glass);
             border: 1px solid var(--border);
-            padding: 8px;
-            border-radius: 8px;
+            padding: 10px;
+            border-radius: 12px;
             backdrop-filter: blur(10px);
+            transition: 0.3s;
+        }
+
+        .menu-btn:active {
+            transform: scale(0.9);
+            border-color: var(--accent);
         }
 
         .menu-btn div { width: 22px; height: 2px; background-color: white; margin: 5px 0; transition: 0.4s; }
 
+        /* SIDEBAR */
         .sidebar {
             position: fixed;
             top: 0;
@@ -92,25 +106,30 @@
 
         .sidebar.active { right: 0; }
         .sidebar h2 { font-family: 'Rajdhani', sans-serif; color: var(--accent); font-size: 22px; }
-        .sidebar p { font-size: 13px; line-height: 1.6; color: #ccc; }
+        .sidebar p { font-size: 13px; color: #ccc; line-height: 1.5; }
         .sidebar .server-ip {
-            background: rgba(255, 0, 0, 0.15);
-            padding: 10px;
+            background: rgba(255, 0, 0, 0.1);
+            padding: 12px;
             border: 1px dashed var(--accent);
             color: var(--accent);
             text-align: center;
             font-family: 'Rajdhani', sans-serif;
-            font-weight: bold;
-            border-radius: 5px;
+            font-weight: 800;
+            border-radius: 8px;
+            font-size: 14px;
         }
         .sidebar a {
             text-decoration: none;
             color: white;
             background: var(--accent);
-            padding: 12px;
-            border-radius: 5px;
+            padding: 14px;
+            border-radius: 10px;
             text-align: center;
-            font-weight: bold;
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 1px;
+            transition: 0.3s;
         }
 
         /* SEARCH */
@@ -125,15 +144,18 @@
         #searchBox {
             width: 100%;
             max-width: 500px;
-            padding: 12px 20px;
+            padding: 14px 24px;
             background: var(--glass);
             border: 1px solid var(--border);
             color: white;
-            border-radius: 25px;
+            border-radius: 30px;
             outline: none;
             backdrop-filter: blur(10px);
             font-size: 16px;
+            transition: 0.3s;
         }
+
+        #searchBox:focus { border-color: var(--accent); box-shadow: 0 0 20px rgba(255, 0, 0, 0.2); }
 
         /* LEADERBOARD */
         .leaderboard-container {
@@ -141,95 +163,83 @@
             max-width: 900px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 15px;
         }
 
         .player-row {
             display: grid;
-            grid-template-columns: 50px 1.2fr 3.8fr; /* Enemmän tilaa tiereille */
+            grid-template-columns: 50px 1.2fr 3.8fr;
             align-items: center;
             background: var(--glass);
             backdrop-filter: blur(20px);
             border: 1px solid var(--border);
-            padding: 15px 20px;
-            border-radius: 15px;
+            padding: 18px 22px;
+            border-radius: 18px;
             cursor: pointer;
-            transition: 0.3s;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .player-row:hover {
-            transform: scale(1.01);
+        .player-row:active {
+            transform: scale(0.98);
+            background: rgba(255, 0, 0, 0.1);
             border-color: var(--accent);
-            background: rgba(255, 0, 0, 0.05);
         }
 
-        .rank-id { font-family: 'Rajdhani', sans-serif; font-weight: 800; font-size: 18px; text-align: center; }
+        .rank-id { font-family: 'Rajdhani', sans-serif; font-weight: 800; font-size: 20px; text-align: center; }
         .rank-1 { color: var(--gold); filter: drop-shadow(0 0 10px var(--gold)); }
-        .rank-other { color: #666; }
+        .rank-other { color: #555; }
 
-        .player-name { font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 700; text-transform: uppercase; }
+        .player-name { font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 700; text-transform: uppercase; color: #eee; }
 
-        .multi-ranks { 
-            display: flex; 
-            flex-wrap: wrap; 
-            gap: 6px; 
-            justify-content: flex-end; 
-        }
+        .multi-ranks { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
 
         .tier-tag {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 5px;
             font-size: 9px;
             font-weight: 800;
-            padding: 4px 8px;
-            border-radius: 6px;
-            background: rgba(0, 0, 0, 0.4);
+            padding: 5px 10px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.5);
             border: 1px solid var(--gold);
             font-family: 'Rajdhani', sans-serif;
-            white-space: nowrap;
+            transition: 0.2s;
         }
 
-        .ht-tag { color: var(--gold); }
-        .lt-tag { color: #888; }
-        .untested { color: #333; border-color: #222; }
+        .ht-tag { color: var(--gold); box-shadow: inset 0 0 5px rgba(255, 204, 0, 0.1); }
+        .lt-tag { color: #aaa; border-color: #444; }
 
         /* MODAL */
         .modal {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.92);
+            background: rgba(0,0,0,0.95);
             z-index: 2000;
             display: none;
             justify-content: center;
             align-items: center;
-            backdrop-filter: blur(15px);
+            backdrop-filter: blur(20px);
         }
 
         .modal-content {
-            background: var(--bg);
+            background: #080808;
             border: 1px solid var(--accent);
-            padding: 30px;
-            border-radius: 20px;
+            padding: 40px 30px;
+            border-radius: 25px;
             width: 90%;
-            max-width: 500px;
+            max-width: 450px;
             position: relative;
+            box-shadow: 0 0 50px rgba(255, 0, 0, 0.2);
         }
 
-        .close-modal { position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 24px; color: var(--accent); }
+        .close-modal { position: absolute; top: 20px; right: 20px; cursor: pointer; font-size: 28px; color: var(--accent); opacity: 0.6; }
+        .close-modal:hover { opacity: 1; }
 
         @media (max-width: 768px) {
-            .player-row { 
-                grid-template-columns: 40px 1fr; 
-                padding: 12px;
-            }
-            .multi-ranks { 
-                grid-column: 1 / span 2; 
-                justify-content: center; 
-                margin-top: 10px;
-                gap: 4px;
-            }
-            .player-name { font-size: 14px; text-align: center; }
+            .player-row { grid-template-columns: 40px 1fr; padding: 15px; }
+            .multi-ranks { grid-column: 1 / span 2; justify-content: center; margin-top: 12px; gap: 6px; }
+            .player-name { font-size: 15px; text-align: center; width: 100%; }
         }
     </style>
 </head>
@@ -261,9 +271,9 @@
     <div class="modal" id="playerModal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeModal()">×</span>
-            <h2 id="modalName" style="font-family: 'Rajdhani'; font-size: 24px; color: var(--accent); text-transform: uppercase; text-align: center;"></h2>
-            <p id="modalRank" style="color: var(--gold); margin-bottom: 20px; font-family: 'Rajdhani'; font-weight: bold; text-align: center;"></p>
-            <div id="modalGrid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"></div>
+            <h2 id="modalName" style="font-family: 'Rajdhani'; font-size: 26px; color: var(--accent); text-transform: uppercase; text-align: center; margin-bottom: 5px;"></h2>
+            <p id="modalRank" style="color: var(--gold); margin-bottom: 25px; font-family: 'Rajdhani'; font-weight: 800; text-align: center; font-size: 14px; letter-spacing: 1px;"></p>
+            <div id="modalGrid" style="display: grid; grid-template-columns: 1fr; gap: 10px;"></div>
         </div>
     </div>
 
@@ -300,13 +310,13 @@
             const p = PLAYERS_DATABASE.find(x => x.name === name);
             const realIndex = PLAYERS_DATABASE.findIndex(x => x.name === name);
             document.getElementById('modalName').innerText = p.name;
-            document.getElementById('modalRank').innerText = `POSITION: #${realIndex + 1}`;
+            document.getElementById('modalRank').innerText = `GLOBAL POSITION — #${realIndex + 1}`;
             let html = "";
             ALL_GAMEMODES.forEach(gm => {
                 const data = p.ranks[gm];
                 const isUntested = !data;
                 html += `
-                    <div class="tier-tag ${isUntested ? 'untested' : (data.type === 'ht' ? 'ht-tag' : 'lt-tag')}" style="justify-content: space-between; font-size: 12px; padding: 10px;">
+                    <div class="tier-tag ${isUntested ? 'untested' : (data.type === 'ht' ? 'ht-tag' : 'lt-tag')}" style="justify-content: space-between; font-size: 12px; padding: 12px; border-radius: 12px;">
                         <span>${gmIcons[gm]} ${gm}</span>
                         <span>${isUntested ? 'Untested' : data.val}</span>
                     </div>`;
@@ -326,10 +336,9 @@
             filtered.forEach((p) => {
                 const realIndex = PLAYERS_DATABASE.findIndex(x => x.name === p.name);
                 const position = realIndex + 1;
-                const rClass = position === 1 ? 'rank-1' : 'rank-other';
                 const rIcon = position === 1 ? '🏆' : `#${position}`;
+                const rClass = position === 1 ? 'rank-1' : 'rank-other';
                 
-                // Nyt haetaan KAIKKI olemassa olevat rankit listaan
                 const ranksHtml = Object.keys(p.ranks).map(key => `
                     <div class="tier-tag ${p.ranks[key].type === 'ht' ? 'ht-tag' : 'lt-tag'}">
                         ${gmIcons[key] || "🛡️"} ${p.ranks[key].val}
@@ -349,4 +358,3 @@
     </script>
 </body>
 </html>
-
