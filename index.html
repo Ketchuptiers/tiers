@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ketchuptiers</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700;800&family=Inter:wght@400;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #030303;
+            --accent: #ff0000;
+            --accent-glow: rgba(255, 0, 0, 0.4);
+            --gold: #ffcc00;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+
+        body {
+            background-color: var(--bg);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding: 40px 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: radial-gradient(circle at center, var(--accent-glow) 0%, transparent 60%);
+            animation: drift 15s infinite alternate ease-in-out;
+            z-index: -1;
+        }
+
+        @keyframes drift {
+            from { transform: scale(1) translate(-10%, -10%); }
+            to { transform: scale(1.2) translate(10%, 10%); }
+        }
+
+        .header-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: clamp(30px, 7vw, 64px);
+            font-weight: 800;
+            letter-spacing: clamp(2px, 2vw, 15px);
+            text-transform: uppercase;
+            color: var(--accent);
+            text-shadow: 0 0 30px var(--accent-glow);
+            margin-bottom: 30px;
+            text-align: center;
+            padding-top: 10px;
+        }
+
+        /* SIDEBAR & FIXED MENU BUTTON */
+        .menu-btn {
+            position: fixed;
+            top: 15px; /* Nostettu ylemmäs */
+            right: 15px;
+            z-index: 1000;
+            cursor: pointer;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            padding: 8px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+
+        .menu-btn div { width: 22px; height: 2px; background-color: white; margin: 5px 0; transition: 0.4s; }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            right: -320px;
+            width: 300px;
+            height: 100%;
+            background: rgba(10, 0, 0, 0.98);
+            backdrop-filter: blur(25px);
+            border-left: 1px solid var(--accent);
+            z-index: 999;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            padding: 80px 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar.active { right: 0; }
+        .sidebar h2 { font-family: 'Rajdhani', sans-serif; color: var(--accent); font-size: 22px; }
+        .sidebar p { font-size: 13px; line-height: 1.6; color: #ccc; }
+        .sidebar .server-ip {
+            background: rgba(255, 0, 0, 0.15);
+            padding: 10px;
+            border: 1px dashed var(--accent);
+            color: var(--accent);
+            text-align: center;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+        .sidebar a {
+            text-decoration: none;
+            color: white;
+            background: var(--accent);
+            padding: 12px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        /* SEARCH */
+        .search-container {
+            width: 100%;
+            max-width: 900px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: center;
+        }
+
+        #searchBox {
+            width: 100%;
+            max-width: 500px;
+            padding: 12px 20px;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            color: white;
+            border-radius: 25px;
+            outline: none;
+            backdrop-filter: blur(10px);
+            font-size: 16px;
+        }
+
+        /* LEADERBOARD */
+        .leaderboard-container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .player-row {
+            display: grid;
+            grid-template-columns: 50px 1.2fr 3.8fr; /* Enemmän tilaa tiereille */
+            align-items: center;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            padding: 15px 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .player-row:hover {
+            transform: scale(1.01);
+            border-color: var(--accent);
+            background: rgba(255, 0, 0, 0.05);
+        }
+
+        .rank-id { font-family: 'Rajdhani', sans-serif; font-weight: 800; font-size: 18px; text-align: center; }
+        .rank-1 { color: var(--gold); filter: drop-shadow(0 0 10px var(--gold)); }
+        .rank-other { color: #666; }
+
+        .player-name { font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 700; text-transform: uppercase; }
+
+        .multi-ranks { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 6px; 
+            justify-content: flex-end; 
+        }
+
+        .tier-tag {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 9px;
+            font-weight: 800;
+            padding: 4px 8px;
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--gold);
+            font-family: 'Rajdhani', sans-serif;
+            white-space: nowrap;
+        }
+
+        .ht-tag { color: var(--gold); }
+        .lt-tag { color: #888; }
+        .untested { color: #333; border-color: #222; }
+
+        /* MODAL */
+        .modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.92);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(15px);
+        }
+
+        .modal-content {
+            background: var(--bg);
+            border: 1px solid var(--accent);
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .close-modal { position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 24px; color: var(--accent); }
+
+        @media (max-width: 768px) {
+            .player-row { 
+                grid-template-columns: 40px 1fr; 
+                padding: 12px;
+            }
+            .multi-ranks { 
+                grid-column: 1 / span 2; 
+                justify-content: center; 
+                margin-top: 10px;
+                gap: 4px;
+            }
+            .player-name { font-size: 14px; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="menu-btn" onclick="toggleSidebar()">
+        <div></div><div></div><div></div>
+    </div>
+
+    <div class="sidebar" id="sidebar">
+        <h2>Information</h2>
+        <p>• Bedrock players: <b>(Bedrock)</b></p>
+        <p>• Cracked players: <b>(Cracked)</b></p>
+        <h2 style="margin-top: 10px;">Server IP</h2>
+        <div class="server-ip">mc.voidsent.net</div>
+        <hr style="border: 0; border-top: 1px solid var(--border); margin: 10px 0;">
+        <h2>Contact</h2>
+        <a href="https://mail.google.com/mail/?view=cm&fs=1&to=pekkakissa710@gmail.com" target="_blank">Send Email</a>
+    </div>
+
+    <h1 class="header-title">Ketchuptiers</h1>
+
+    <div class="search-container">
+        <input type="text" id="searchBox" placeholder="🔍 Search players..." onkeyup="updateList()">
+    </div>
+
+    <div class="leaderboard-container" id="list-container"></div>
+
+    <div class="modal" id="playerModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">×</span>
+            <h2 id="modalName" style="font-family: 'Rajdhani'; font-size: 24px; color: var(--accent); text-transform: uppercase; text-align: center;"></h2>
+            <p id="modalRank" style="color: var(--gold); margin-bottom: 20px; font-family: 'Rajdhani'; font-weight: bold; text-align: center;"></p>
+            <div id="modalGrid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"></div>
+        </div>
+    </div>
+
+    <script>
+        const PLAYERS_DATABASE = [
+            {
+                name: "MrKetsuppi (Cracked)",
+                ranks: {
+                    Sword: { val: "HT5", type: "ht" },
+                    Crystal: { val: "HT4", type: "ht" },
+                    Axe: { val: "HT5", type: "ht" },
+                    UHC: { val: "LT5", type: "lt" },
+                    Mace: { val: "LT5", type: "lt" }
+                }
+            },
+            {
+                name: "YEHORPROMAX (Cracked)",
+                ranks: {
+                    Sword: { val: "LT5", type: "lt" },
+                    Crystal: { val: "LT5", type: "lt" },
+                    Axe: { val: "LT5", type: "lt" },
+                    UHC: { val: "LT5", type: "lt" },
+                    Mace: { val: "LT5", type: "lt" }
+                }
+            }
+        ];
+
+        const ALL_GAMEMODES = ["Sword", "Crystal", "Axe", "UHC", "Mace"];
+        const gmIcons = { Sword: "⚔️", Crystal: "🔮", Axe: "🪓", Mace: "🔨", UHC: "🍎" };
+
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); }
+
+        function openPlayerPage(name) {
+            const p = PLAYERS_DATABASE.find(x => x.name === name);
+            const realIndex = PLAYERS_DATABASE.findIndex(x => x.name === name);
+            document.getElementById('modalName').innerText = p.name;
+            document.getElementById('modalRank').innerText = `POSITION: #${realIndex + 1}`;
+            let html = "";
+            ALL_GAMEMODES.forEach(gm => {
+                const data = p.ranks[gm];
+                const isUntested = !data;
+                html += `
+                    <div class="tier-tag ${isUntested ? 'untested' : (data.type === 'ht' ? 'ht-tag' : 'lt-tag')}" style="justify-content: space-between; font-size: 12px; padding: 10px;">
+                        <span>${gmIcons[gm]} ${gm}</span>
+                        <span>${isUntested ? 'Untested' : data.val}</span>
+                    </div>`;
+            });
+            document.getElementById('modalGrid').innerHTML = html;
+            document.getElementById('playerModal').style.display = 'flex';
+        }
+
+        function closeModal() { document.getElementById('playerModal').style.display = 'none'; }
+
+        function updateList() {
+            const container = document.getElementById('list-container');
+            const q = document.getElementById('searchBox').value.toLowerCase();
+            container.innerHTML = "";
+            const filtered = PLAYERS_DATABASE.filter(p => p.name.toLowerCase().includes(q));
+            
+            filtered.forEach((p) => {
+                const realIndex = PLAYERS_DATABASE.findIndex(x => x.name === p.name);
+                const position = realIndex + 1;
+                const rClass = position === 1 ? 'rank-1' : 'rank-other';
+                const rIcon = position === 1 ? '🏆' : `#${position}`;
+                
+                // Nyt haetaan KAIKKI olemassa olevat rankit listaan
+                const ranksHtml = Object.keys(p.ranks).map(key => `
+                    <div class="tier-tag ${p.ranks[key].type === 'ht' ? 'ht-tag' : 'lt-tag'}">
+                        ${gmIcons[key] || "🛡️"} ${p.ranks[key].val}
+                    </div>`).join('');
+
+                container.innerHTML += `
+                    <div class="player-row" onclick="openPlayerPage('${p.name}')">
+                        <div class="rank-id ${rClass}">${rIcon}</div>
+                        <div class="player-name">${p.name}</div>
+                        <div class="multi-ranks">${ranksHtml}</div>
+                    </div>`;
+            });
+        }
+
+        window.onclick = function(event) { if (event.target == document.getElementById('playerModal')) closeModal(); }
+        updateList();
+    </script>
+</body>
+</html>
+
