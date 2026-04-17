@@ -197,14 +197,12 @@
             text-transform: uppercase;
         }
 
-        /* Kultainen: Ranked tierit */
         .gold-tag { 
             color: var(--gold); 
             border: 1px solid var(--gold);
             box-shadow: inset 0 0 5px rgba(255, 204, 0, 0.1); 
         }
 
-        /* Harmaa: Unranked */
         .gray-tag { 
             color: #888; 
             border: 1px solid #444; 
@@ -276,12 +274,15 @@
     </div>
 
     <script>
-        // --- PELAAJIEN LISÄÄMINEN ---
-        // Jos tier on "none" tai "unranked", se on harmaa. Muut ovat kultaisia.
+        // --- PELAAJIEN TIEDOT ---
         const PLAYERS_DATABASE = [
             {
                 name: "MrKetsuppi (Cracked)",
                 tiers: { Sword: "HT5", Crystal: "LT4", Axe: "HT5", UHC: "LT5", Mace: "LT5" }
+            },
+            {
+                name: "Kroos_vangoon (Cracked)",
+                tiers: { Sword: "LT4", Crystal: "LT4", Axe: "HT5", UHC: "none", Mace: "none" }
             },
             {
                 name: "YEHORPROMAX (Cracked)",
