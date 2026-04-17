@@ -15,13 +15,12 @@
             --border: rgba(255, 255, 255, 0.1);
         }
 
-        /* POISTETAAN SININEN VÄLÄHDYS JA TEHDÄÄN HIENOMPI */
         * { 
             margin: 0; 
             padding: 0; 
             box-sizing: border-box; 
             user-select: none; 
-            -webkit-tap-highlight-color: transparent; /* Poistaa sinisen korostuksen */
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -64,7 +63,6 @@
             padding-top: 15px;
         }
 
-        /* MENU BUTTON FIX */
         .menu-btn {
             position: fixed;
             top: 20px;
@@ -86,7 +84,6 @@
 
         .menu-btn div { width: 22px; height: 2px; background-color: white; margin: 5px 0; transition: 0.4s; }
 
-        /* SIDEBAR */
         .sidebar {
             position: fixed;
             top: 0;
@@ -132,7 +129,6 @@
             transition: 0.3s;
         }
 
-        /* SEARCH */
         .search-container {
             width: 100%;
             max-width: 900px;
@@ -157,7 +153,6 @@
 
         #searchBox:focus { border-color: var(--accent); box-shadow: 0 0 20px rgba(255, 0, 0, 0.2); }
 
-        /* LEADERBOARD */
         .leaderboard-container {
             width: 100%;
             max-width: 900px;
@@ -202,15 +197,23 @@
             padding: 5px 10px;
             border-radius: 8px;
             background: rgba(0, 0, 0, 0.5);
-            border: 1px solid var(--gold);
             font-family: 'Rajdhani', sans-serif;
             transition: 0.2s;
         }
 
-        .ht-tag { color: var(--gold); box-shadow: inset 0 0 5px rgba(255, 204, 0, 0.1); }
-        .lt-tag { color: #aaa; border-color: #444; }
+        /* Kultainen tyyli (HT5 ja muut LT:t paitsi LT5) */
+        .ht-tag { 
+            color: var(--gold); 
+            border: 1px solid var(--gold);
+            box-shadow: inset 0 0 5px rgba(255, 204, 0, 0.1); 
+        }
 
-        /* MODAL */
+        /* Harmaa tyyli (Vain LT5) */
+        .lt-tag { 
+            color: #888; 
+            border: 1px solid #444; 
+        }
+
         .modal {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -282,21 +285,21 @@
             {
                 name: "MrKetsuppi (Cracked)",
                 ranks: {
-                    Sword: { val: "HT5", type: "ht" },
-                    Crystal: { val: "LT4", type: "lt" },
-                    Axe: { val: "HT5", type: "ht" },
-                    UHC: { val: "LT5", type: "lt" },
-                    Mace: { val: "LT5", type: "lt" }
+                    Sword: "HT5",
+                    Crystal: "LT4",
+                    Axe: "HT5",
+                    UHC: "LT5",
+                    Mace: "LT5"
                 }
             },
             {
                 name: "YEHORPROMAX (Cracked)",
                 ranks: {
-                    Sword: { val: "LT5", type: "lt" },
-                    Crystal: { val: "LT5", type: "lt" },
-                    Axe: { val: "LT5", type: "lt" },
-                    UHC: { val: "LT5", type: "lt" },
-                    Mace: { val: "LT5", type: "lt" }
+                    Sword: "LT5",
+                    Crystal: "LT5",
+                    Axe: "LT5",
+                    UHC: "LT5",
+                    Mace: "LT5"
                 }
             }
         ];
@@ -306,6 +309,12 @@
 
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); }
 
+        // Apufunktio värin määrittämiseen tekstin perusteella
+        function getTierClass(tierText) {
+            if (!tierText) return 'lt-tag';
+            return tierText === "LT5" ? "lt-tag" : "ht-tag";
+        }
+
         function openPlayerPage(name) {
             const p = PLAYERS_DATABASE.find(x => x.name === name);
             const realIndex = PLAYERS_DATABASE.findIndex(x => x.name === name);
@@ -313,12 +322,14 @@
             document.getElementById('modalRank').innerText = `GLOBAL POSITION — #${realIndex + 1}`;
             let html = "";
             ALL_GAMEMODES.forEach(gm => {
-                const data = p.ranks[gm];
-                const isUntested = !data;
+                const val = p.ranks[gm];
+                const isUntested = !val;
+                const tierClass = getTierClass(val);
+                
                 html += `
-                    <div class="tier-tag ${isUntested ? 'untested' : (data.type === 'ht' ? 'ht-tag' : 'lt-tag')}" style="justify-content: space-between; font-size: 12px; padding: 12px; border-radius: 12px;">
+                    <div class="tier-tag ${tierClass}" style="justify-content: space-between; font-size: 12px; padding: 12px; border-radius: 12px;">
                         <span>${gmIcons[gm]} ${gm}</span>
-                        <span>${isUntested ? 'Untested' : data.val}</span>
+                        <span>${isUntested ? 'Untested' : val}</span>
                     </div>`;
             });
             document.getElementById('modalGrid').innerHTML = html;
@@ -339,10 +350,13 @@
                 const rIcon = position === 1 ? '🏆' : `#${position}`;
                 const rClass = position === 1 ? 'rank-1' : 'rank-other';
                 
-                const ranksHtml = Object.keys(p.ranks).map(key => `
-                    <div class="tier-tag ${p.ranks[key].type === 'ht' ? 'ht-tag' : 'lt-tag'}">
-                        ${gmIcons[key] || "🛡️"} ${p.ranks[key].val}
-                    </div>`).join('');
+                const ranksHtml = Object.keys(p.ranks).map(key => {
+                    const val = p.ranks[key];
+                    return `
+                    <div class="tier-tag ${getTierClass(val)}">
+                        ${gmIcons[key] || "🛡️"} ${val}
+                    </div>`;
+                }).join('');
 
                 container.innerHTML += `
                     <div class="player-row" onclick="openPlayerPage('${p.name}')">
