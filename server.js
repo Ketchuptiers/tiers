@@ -10,6 +10,7 @@ app.use((req, res, next) => {
 });
 
 const DB = 'players.json';
+const PASSWORD = '0204';
 if (!fs.existsSync(DB)) fs.writeFileSync(DB, '[]');
 
 app.get('/players', (req, res) => {
@@ -17,6 +18,7 @@ app.get('/players', (req, res) => {
 });
 
 app.post('/players', (req, res) => {
+  if (req.body.password !== PASSWORD) return res.status(401).json({ error: 'Wrong password' });
   const players = JSON.parse(fs.readFileSync(DB));
   const { name, tiers } = req.body;
   const idx = players.findIndex(p => p.name === name);
@@ -25,12 +27,3 @@ app.post('/players', (req, res) => {
   fs.writeFileSync(DB, JSON.stringify(players));
   res.json({ ok: true });
 });
-
-app.delete('/players/:name', (req, res) => {
-  let players = JSON.parse(fs.readFileSync(DB));
-  players = players.filter(p => p.name !== req.params.name);
-  fs.writeFileSync(DB, JSON.stringify(players));
-  res.json({ ok: true });
-});
-
-app.listen(process.env.PORT || 3000);
