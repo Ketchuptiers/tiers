@@ -43,6 +43,7 @@
             background: radial-gradient(circle at center, var(--accent-glow) 0%, transparent 60%);
             animation: drift 15s infinite alternate ease-in-out;
             z-index: -1;
+            pointer-events: none;
         }
 
         @keyframes drift {
@@ -79,6 +80,17 @@
 
         .menu-btn div { width: 22px; height: 2px; background-color: white; margin: 5px 0; transition: 0.4s; }
 
+        /* Sidebar overlay */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 998;
+            display: none;
+        }
+        .sidebar-overlay.active { display: block; }
+
         .sidebar {
             position: fixed;
             top: 0;
@@ -94,6 +106,7 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
+            overflow-y: auto;
         }
 
         .sidebar.active { right: 0; }
@@ -134,6 +147,7 @@
         }
 
         #searchBox:focus { border-color: var(--accent); box-shadow: 0 0 20px rgba(255, 0, 0, 0.2); }
+        #searchBox::placeholder { color: #666; }
 
         .leaderboard-container {
             width: 100%;
@@ -154,6 +168,11 @@
             border-radius: 18px;
             cursor: pointer;
             transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .player-row:hover {
+            background: rgba(255, 0, 0, 0.07);
+            border-color: rgba(255,0,0,0.4);
         }
 
         .player-row:active {
@@ -206,6 +225,8 @@
             backdrop-filter: blur(20px);
         }
 
+        .modal.open { display: flex; }
+
         .modal-content {
             background: #080808;
             border: 1px solid var(--accent);
@@ -215,22 +236,58 @@
             max-width: 450px;
             position: relative;
             box-shadow: 0 0 50px rgba(255, 0, 0, 0.2);
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
-        .close-modal { position: absolute; top: 20px; right: 20px; cursor: pointer; font-size: 28px; color: var(--accent); opacity: 0.6; }
+        .close-modal { 
+            position: absolute; 
+            top: 20px; right: 20px; 
+            cursor: pointer; 
+            font-size: 28px; 
+            color: var(--accent); 
+            opacity: 0.6;
+            line-height: 1;
+            z-index: 1;
+        }
+        .close-modal:hover { opacity: 1; }
+
+        .no-results {
+            color: #555;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 18px;
+            text-align: center;
+            margin-top: 40px;
+        }
 
         @media (max-width: 768px) {
-            .player-row { grid-template-columns: 40px 1fr; padding: 15px; }
-            .multi-ranks { grid-column: 1 / span 2; justify-content: center; margin-top: 12px; gap: 6px; }
-            .player-name { font-size: 15px; text-align: center; width: 100%; }
+            .player-row { 
+                grid-template-columns: 40px 1fr; 
+                grid-template-rows: auto auto;
+                padding: 15px; 
+            }
+            .multi-ranks { 
+                grid-column: 1 / span 2; 
+                justify-content: center; 
+                margin-top: 12px; 
+                gap: 6px; 
+            }
+            .player-name { 
+                font-size: 15px; 
+                text-align: center; 
+                width: 100%; 
+            }
         }
     </style>
 </head>
 <body>
 
-    <div class="menu-btn" onclick="toggleSidebar()">
+    <div class="menu-btn" id="menuBtn" onclick="toggleSidebar()">
         <div></div><div></div><div></div>
     </div>
+
+    <!-- Sidebar overlay (tummentaa taustan) -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
     <div class="sidebar" id="sidebar">
         <h2>Information</h2>
@@ -251,11 +308,12 @@
     <h1 class="header-title">Ketchuptiers</h1>
 
     <div class="search-container">
-        <input type="text" id="searchBox" placeholder="🔍 Search players..." onkeyup="updateList()">
+        <input type="text" id="searchBox" placeholder="🔍 Search players..." oninput="updateList()" onkeyup="updateList()">
     </div>
 
     <div class="leaderboard-container" id="list-container"></div>
 
+    <!-- Player Modal -->
     <div class="modal" id="playerModal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeModal()">×</span>
@@ -265,6 +323,7 @@
         </div>
     </div>
 
+    <!-- Help Modal -->
     <div class="modal" id="helpModal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeHelp()">×</span>
@@ -299,470 +358,130 @@
         const ALL_GAMEMODES = ["Sword", "Crystal", "Axe", "UHC", "Mace"];
         const gmIcons = { Sword: "⚔️", Crystal: "🔮", Axe: "🪓", Mace: "🔨", UHC: "🍎" };
 
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); }
+        // --- Sidebar ---
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const isActive = sidebar.classList.contains('active');
+            if (isActive) {
+                closeSidebar();
+            } else {
+                sidebar.classList.add('active');
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
 
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('active');
+            document.getElementById('sidebarOverlay').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // --- Tier helper ---
         function getTierData(tierVal) {
             const val = (tierVal || "none").toLowerCase();
             const isUnranked = (val === "none" || val === "unranked");
             return {
-                class: isUnranked ? "gray-tag" : "gold-tag",
-                display: isUnranked ? "Unranked" : tierVal 
+                cls: isUnranked ? "gray-tag" : "gold-tag",
+                display: isUnranked ? "Unranked" : tierVal
             };
         }
 
-        function openPlayerPage(name) {
-            const p = PLAYERS_DATABASE.find(x => x.name === name);
-            const realIndex = PLAYERS_DATABASE.findIndex(x => x.name === name);
+        // --- Player modal ---
+        function openPlayerPage(index) {
+            const p = PLAYERS_DATABASE[index];
+            if (!p) return;
+
             document.getElementById('modalName').innerText = p.name;
-            document.getElementById('modalRank').innerText = `GLOBAL POSITION — #${realIndex + 1}`;
-            
+            document.getElementById('modalRank').innerText = `GLOBAL POSITION — #${index + 1}`;
+
             let html = "";
             ALL_GAMEMODES.forEach(gm => {
                 const data = getTierData(p.tiers[gm]);
                 html += `
-                    <div class="tier-tag ${data.class}" style="justify-content: space-between; font-size: 12px; padding: 12px; border-radius: 12px;">
+                    <div class="tier-tag ${data.cls}" style="justify-content: space-between; font-size: 12px; padding: 12px; border-radius: 12px;">
                         <span>${gmIcons[gm]} ${gm}</span>
                         <span>${data.display}</span>
                     </div>`;
             });
             document.getElementById('modalGrid').innerHTML = html;
-            document.getElementById('playerModal').style.display = 'flex';
+            document.getElementById('playerModal').classList.add('open');
+            document.body.style.overflow = 'hidden';
         }
 
-        function closeModal() { document.getElementById('playerModal').style.display = 'none'; }
-        
+        function closeModal() {
+            document.getElementById('playerModal').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        // --- Help modal ---
         function openHelp() {
-            toggleSidebar(); // Sulkee sivupalkin
-            document.getElementById('helpModal').style.display = 'flex'; // Avaa ohjeen
+            closeSidebar();
+            document.getElementById('helpModal').classList.add('open');
+            document.body.style.overflow = 'hidden';
         }
 
-        function closeHelp() { document.getElementById('helpModal').style.display = 'none'; }
+        function closeHelp() {
+            document.getElementById('helpModal').classList.remove('open');
+            document.body.style.overflow = '';
+        }
 
+        // --- List render ---
         function updateList() {
             const container = document.getElementById('list-container');
             const q = document.getElementById('searchBox').value.toLowerCase();
             container.innerHTML = "";
-            const filtered = PLAYERS_DATABASE.filter(p => p.name.toLowerCase().includes(q));
-            
-            filtered.forEach((p) => {
-                const realIndex = PLAYERS_DATABASE.findIndex(x => x.name === p.name);
-                const position = realIndex + 1;
+
+            const filtered = PLAYERS_DATABASE
+                .map((p, i) => ({ p, i }))
+                .filter(({ p }) => p.name.toLowerCase().includes(q));
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="no-results">No players found</div>';
+                return;
+            }
+
+            filtered.forEach(({ p, i }) => {
+                const position = i + 1;
                 const rIcon = position === 1 ? '🏆' : `#${position}`;
                 const rClass = position === 1 ? 'rank-1' : 'rank-other';
-                
+
                 const ranksHtml = ALL_GAMEMODES.map(gm => {
                     const data = getTierData(p.tiers[gm]);
-                    return `<div class="tier-tag ${data.class}">${gmIcons[gm]} ${data.display}</div>`;
+                    return `<div class="tier-tag ${data.cls}">${gmIcons[gm]} ${data.display}</div>`;
                 }).join('');
 
-                container.innerHTML += `
-                    <div class="player-row" onclick="openPlayerPage('${p.name}')">
-                        <div class="rank-id ${rClass}">${rIcon}</div>
-                        <div class="player-name">${p.name}</div>
-                        <div class="multi-ranks">${ranksHtml}</div>
-                    </div>`;
+                const row = document.createElement('div');
+                row.className = 'player-row';
+                row.innerHTML = `
+                    <div class="rank-id ${rClass}">${rIcon}</div>
+                    <div class="player-name">${p.name}</div>
+                    <div class="multi-ranks">${ranksHtml}</div>
+                `;
+                // Käytetään data-indeksiä nimen sijaan → toimii erikoismerkeillä
+                row.addEventListener('click', () => openPlayerPage(i));
+                container.appendChild(row);
             });
         }
 
-        // Mahdollistaa molempien modal-ikkunoiden sulkemisen taustaa klikkaamalla
-        window.onclick = function(event) { 
-            if (event.target == document.getElementById('playerModal')) closeModal(); 
-            if (event.target == document.getElementById('helpModal')) closeHelp();
-        }
-        
-        updateList();
-    </script>
-</body>
-</html>
-            font-weight: 800;
-            border-radius: 8px;
-            font-size: 14px;
-        }
+        // --- Sulje modalit taustaa klikkaamalla ---
+        document.getElementById('playerModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+        document.getElementById('helpModal').addEventListener('click', function(e) {
+            if (e.target === this) closeHelp();
+        });
 
-        .side-btn {
-            display: block; width: 100%; padding: 12px;
-            text-align: center; border-radius: 6px;
-            font-weight: 700; font-size: 12px;
-            text-decoration: none; cursor: pointer; transition: 0.3s;
-            font-family: 'Inter', sans-serif;
-        }
+        // --- Sulje modalit/sidebar Escape-näppäimellä ---
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+                closeHelp();
+                closeSidebar();
+            }
+        });
 
-        .help-btn { background: #333; color: white; border: 1px solid #555; margin-bottom: 5px; }
-        .help-btn:hover { background: #444; }
-        .email-btn { background: #db4437; color: white; border: none; }
-
-        .search-container {
-            width: 100%;
-            max-width: 900px;
-            margin-bottom: 30px;
-            display: flex;
-            justify-content: center;
-        }
-
-        #searchBox {
-            width: 100%;
-            max-width: 500px;
-            padding: 14px 24px;
-            background: var(--glass);
-            border: 1px solid var(--border);
-            color: white;
-            border-radius: 30px;
-            outline: none;
-            backdrop-filter: blur(10px);
-            font-size: 16px;
-            transition: 0.3s;
-        }
-
-        #searchBox:focus { border-color: var(--accent); box-shadow: 0 0 20px rgba(255, 0, 0, 0.2); }
-
-        .leaderboard-container {
-            width: 100%;
-            max-width: 900px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .player-row {
-            display: grid;
-            grid-template-columns: 50px 1.2fr 3.8fr;
-            align-items: center;
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            padding: 18px 22px;
-            border-radius: 18px;
-            cursor: pointer;
-            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .rank-id { font-family: 'Rajdhani', sans-serif; font-weight: 800; font-size: 20px; text-align: center; }
-        .rank-1 { color: var(--gold); filter: drop-shadow(0 0 10px var(--gold)); }
-        .rank-other { color: #555; }
-
-        .player-name { font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 700; text-transform: uppercase; color: #eee; }
-
-        .multi-ranks { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
-
-        .tier-tag {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 9px;
-            font-weight: 800;
-            padding: 5px 10px;
-            border-radius: 8px;
-            background: rgba(0, 0, 0, 0.5);
-            font-family: 'Rajdhani', sans-serif;
-            transition: 0.2s;
-            text-transform: uppercase;
-        }
-
-        .gold-tag { color: var(--gold); border: 1px solid var(--gold); }
-        .gray-tag { color: #888; border: 1px solid #444; }
-
-        .modal {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
-            z-index: 2000;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            backdrop-filter: blur(20px);
-        }
-
-        .modal-content {
-            background: #080808;
-            border: 1px solid var(--accent);
-            padding: 40px 30px;
-            border-radius: 25px;
-            width: 90%;
-            max-width: 450px;
-            position: relative;
-        }
-
-        .close-modal { position: absolute; top: 20px; right: 20px; cursor: pointer; font-size: 28px; color: var(--accent); opacity: 0.6; }
-
-        @media (max-width: 768px) {
-            .player-row { grid-template-columns: 40px 1fr; padding: 15px; }
-            .multi-ranks { grid-column: 1 / span 2; justify-content: center; margin-top: 12px; gap: 6px; }
-            .player-name { font-size: 15px; text-align: center; width: 100%; }
-        }
-    </style>
-</head>
-<body>
-
-    <div class="menu-btn" onclick="toggleSidebar()">
-        <div></div><div></div><div></div>
-    </div>
-
-    <div class="sidebar" id="sidebar">
-        <h2>Information</h2>
-        <p>• Bedrock players: <b>(Bedrock)</b></p>
-        <p>• Cracked players: <b>(Cracked)</b></p>
-        <h2 style="margin-top: 10px;">Server IP</h2>
-        <div class="server-ip">mc.voidsent.net</div>
-        <hr style="border: 0; border-top: 1px solid var(--border); margin: 10px 0;">
-        <h2>Support</h2>
-        <div class="side-btn help-btn" onclick="openHelp()">HOW TO GET TESTED</div>
-        <a href="mailto:pekkakissa710@gmail.com" class="side-btn email-btn">SEND EMAIL</a>
-    </div>
-
-    <h1 class="header-title">Ketchuptiers</h1>
-
-    <div class="search-container">
-        <input type="text" id="searchBox" placeholder="🔍 Search players..." onkeyup="updateList()">
-    </div>
-
-    <div class="leaderboard-container" id="list-container"></div>
-
-    <div class="modal" id="playerModal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('playerModal')">×</span>
-            <h2 id="modalName" style="font-family: 'Rajdhani'; font-size: 26px; color: var(--accent); text-transform: uppercase; text-align: center; margin-bottom: 5px;"></h2>
-            <p id="modalRank" style="color: var(--gold); margin-bottom: 25px; font-family: 'Rajdhani'; font-weight: 800; text-align: center; font-size: 14px; letter-spacing: 1px;"></p>
-            <div id="modalGrid" style="display: grid; grid-template-columns: 1fr; gap: 10px;"></div>
-        </div>
-    </div>
-
-    <div class="modal" id="helpModal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('helpModal')">×</span>
-            <h2 style="font-family: 'Rajdhani'; font-size: 26px; color: var(--accent); text-transform: uppercase; text-align: center;">How to get tested</h2>
-            <div style="color: #ccc; line-height: 1.6; font-size: 14px; margin-top: 20px;">
-                1. Install the <b>"Show Own Nametag"</b> mod.<br><br>
-                2. Connect to <b>mc.voidsent.net</b>.<br><br>
-                3. Go to duels and switch to <b>F5 mode</b>. Look around quickly and slowly for <b>one minute</b>.<br><br>
-                4. Participate in <b>5 duels</b> of your desired gamemode.<br>
-                <i>(Available: Sword, Axe, Crystal, Mace, UHC)</i>.<br><br>
-                5. You <b>must record</b> the entire process as proof.
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const PLAYERS_DATABASE = [
-            { name: "MrKetsuppi (Cracked)", tiers: { Sword: "HT5", Crystal: "LT4", Axe: "HT5", UHC: "LT5", Mace: "LT5" } },
-            { name: "Kroos_vangoon (Cracked)", tiers: { Sword: "LT4", Crystal: "LT4", Axe: "HT5", UHC: "none", Mace: "none" } },
-            { name: "YEHORPROMAX (Cracked)", tiers: { Sword: "LT5", Crystal: "LT5", Axe: "LT5", UHC: "LT5", Mace: "LT5" } }
-        ];
-
-        const ALL_GAMEMODES = ["Sword", "Crystal", "Axe", "UHC", "Mace"];
-        const gmIcons = { Sword: "⚔️", Crystal: "🔮", Axe: "🪓", Mace: "🔨", UHC: "🍎" };
-
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); }
-        function openHelp() { toggleSidebar(); document.getElementById('helpModal').style.display = 'flex'; }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
-        function getTierData(tierVal) {
-            const val = (tierVal || "none").toLowerCase();
-            const isUnranked = (val === "none" || val === "unranked");
-            return {
-                class: isUnranked ? "gray-tag" : "gold-tag",
-                display: isUnranked ? "Unranked" : tierVal 
-            };
-        }
-
-        function openPlayerPage(name) {
-            const p = PLAYERS_DATABASE.find(x => x.name === name);
-            const idx = PLAYERS_DATABASE.findIndex(x => x.name === name);
-            document.getElementById('modalName').innerText = p.name;
-            document.getElementById('modalRank').innerText = `GLOBAL POSITION — #${idx + 1}`;
-            
-            let html = "";
-            ALL_GAMEMODES.forEach(gm => {
-                const data = getTierData(p.tiers[gm]);
-                html += `
-                    <div class="tier-tag ${data.class}" style="justify-content: space-between; font-size: 12px; padding: 12px; border-radius: 12px;">
-                        <span>${gmIcons[gm]} ${gm}</span>
-                        <span>${data.display}</span>
-                    </div>`;
-            });
-            document.getElementById('modalGrid').innerHTML = html;
-            document.getElementById('playerModal').style.display = 'flex';
-        }
-
-        function updateList() {
-            const container = document.getElementById('list-container');
-            const q = document.getElementById('searchBox').value.toLowerCase();
-            container.innerHTML = "";
-            const filtered = PLAYERS_DATABASE.filter(p => p.name.toLowerCase().includes(q));
-            
-            filtered.forEach((p) => {
-                const idx = PLAYERS_DATABASE.findIndex(x => x.name === p.name);
-                const rIcon = idx === 0 ? '🏆' : '#' + (idx + 1);
-                const rClass = idx === 0 ? 'rank-1' : 'rank-other';
-                
-                const ranksHtml = ALL_GAMEMODES.map(gm => {
-                    const data = getTierData(p.tiers[gm]);
-                    return `<div class="tier-tag ${data.class}">${gmIcons[gm]} ${data.display}</div>`;
-                }).join('');
-
-                container.innerHTML += `
-                    <div class="player-row" onclick="openPlayerPage('${p.name}')">
-                        <div class="rank-id ${rClass}">${rIcon}</div>
-                        <div class="player-name">${p.name}</div>
-                        <div class="multi-ranks">${ranksHtml}</div>
-                    </div>`;
-            });
-        }
-
-        window.onclick = function(e) { if (e.target.className === 'modal') e.target.style.display = 'none'; }
-        updateList();
-    </script>
-</body>
-</html>
-
-        .leaderboard-container { width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 15px; }
-
-        .player-row {
-            display: grid; grid-template-columns: 50px 1.2fr 3.8fr;
-            align-items: center; background: var(--glass);
-            border: 1px solid var(--border); padding: 18px 22px;
-            border-radius: 18px; cursor: pointer; transition: 0.3s;
-        }
-
-        .rank-id { font-family: 'Rajdhani', sans-serif; font-weight: 800; font-size: 20px; text-align: center; }
-        .rank-1 { color: var(--gold); }
-        .player-name { font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 700; color: #eee; }
-        .multi-ranks { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
-
-        .tier-tag {
-            display: flex; align-items: center; gap: 5px;
-            font-size: 9px; font-weight: 800; padding: 5px 10px;
-            border-radius: 8px; background: rgba(0, 0, 0, 0.5);
-            font-family: 'Rajdhani', sans-serif;
-        }
-        .gold-tag { color: var(--gold); border: 1px solid var(--gold); }
-        .gray-tag { color: #888; border: 1px solid #444; }
-
-        .modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); z-index: 2000;
-            display: none; justify-content: center; align-items: center;
-            backdrop-filter: blur(20px);
-        }
-
-        .modal-content {
-            background: #080808; border: 1px solid var(--accent);
-            padding: 40px 30px; border-radius: 25px;
-            width: 90%; max-width: 450px; position: relative;
-        }
-
-        .close-modal { position: absolute; top: 20px; right: 20px; cursor: pointer; font-size: 28px; color: var(--accent); }
-
-        @media (max-width: 768px) {
-            .player-row { grid-template-columns: 40px 1fr; }
-            .multi-ranks { grid-column: 1 / span 2; justify-content: center; }
-        }
-    </style>
-</head>
-<body>
-
-    <div class="menu-btn" onclick="toggleSidebar()">
-        <div></div><div></div><div></div>
-    </div>
-
-    <div class="sidebar" id="sidebar">
-        <h2>Information</h2>
-        <p>• Bedrock: <b>Supported</b></p>
-        <p>• Java (Cracked): <b>Supported</b></p>
-        <h2 style="margin-top: 10px;">Server IP</h2>
-        <div class="server-ip">mc.voidsent.net</div>
-        <hr style="border: 0; border-top: 1px solid var(--border); margin: 10px 0;">
-        <h2>Support</h2>
-        <div class="side-btn help-btn" onclick="openHelp()">HOW TO GET TESTED</div>
-        <a href="mailto:pekkakissa710@gmail.com" class="side-btn email-btn">SEND EMAIL</a>
-    </div>
-
-    <h1 class="header-title">Ketchuptiers</h1>
-
-    <div class="search-container">
-        <input type="text" id="searchBox" placeholder="🔍 Search players..." onkeyup="updateList()">
-    </div>
-
-    <div class="leaderboard-container" id="list-container"></div>
-
-    <div class="modal" id="playerModal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('playerModal')">×</span>
-            <h2 id="modalName" style="text-align: center; color: var(--accent); font-family: 'Rajdhani';"></h2>
-            <p id="modalRank" style="text-align: center; color: var(--gold); font-size: 14px; margin-bottom: 20px;"></p>
-            <div id="modalGrid" style="display: grid; gap: 10px;"></div>
-        </div>
-    </div>
-
-    <div class="modal" id="helpModal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('helpModal')">×</span>
-            <h2 style="color: var(--accent); text-align: center; font-family: 'Rajdhani';">HOW TO GET TESTED</h2>
-            <div style="color: #ccc; font-size: 14px; line-height: 1.6; margin-top: 20px;">
-                1. Install the <b>"Show Own Nametag"</b> mod.<br><br>
-                2. Connect to <b>mc.voidsent.net</b>.<br><br>
-                3. Go to duels, enter <b>F5 mode</b>, and look around quickly and slowly for <b>one minute</b>.<br><br>
-                4. Play <b>5 duels</b> of your chosen gamemode.<br>
-                <i>(Available: Sword, Axe, Crystal, Mace, UHC)</i>.<br><br>
-                5. You <b>must record</b> this entire process.
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const PLAYERS_DATABASE = [
-            { name: "MrKetsuppi (Cracked)", tiers: { Sword: "HT5", Crystal: "LT4", Axe: "HT5", UHC: "LT5", Mace: "LT5" } },
-            { name: "Kroos_vangoon (Cracked)", tiers: { Sword: "LT4", Crystal: "LT4", Axe: "HT5", UHC: "none", Mace: "none" } },
-            { name: "YEHORPROMAX (Cracked)", tiers: { Sword: "LT5", Crystal: "LT5", Axe: "LT5", UHC: "LT5", Mace: "LT5" } }
-        ];
-
-        const ALL_GAMEMODES = ["Sword", "Crystal", "Axe", "UHC", "Mace"];
-        const gmIcons = { Sword: "⚔️", Crystal: "🔮", Axe: "🪓", Mace: "🔨", UHC: "🍎" };
-
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); }
-        function openHelp() { toggleSidebar(); document.getElementById('helpModal').style.display = 'flex'; }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
-        function getTierData(tierVal) {
-            const val = (tierVal || "none").toLowerCase();
-            const isUn = (val === "none" || val === "unranked");
-            return { class: isUn ? "gray-tag" : "gold-tag", display: isUn ? "Unranked" : tierVal };
-        }
-
-        function openPlayerPage(name) {
-            const p = PLAYERS_DATABASE.find(x => x.name === name);
-            const idx = PLAYERS_DATABASE.findIndex(x => x.name === name);
-            document.getElementById('modalName').innerText = p.name;
-            document.getElementById('modalRank').innerText = `RANK #${idx + 1}`;
-            let html = "";
-            ALL_GAMEMODES.forEach(gm => {
-                const data = getTierData(p.tiers[gm]);
-                html += `<div class="tier-tag ${data.class}" style="justify-content: space-between; padding: 12px; font-size: 12px; border-radius: 12px;">
-                    <span>${gmIcons[gm]} ${gm}</span><span>${data.display}</span></div>`;
-            });
-            document.getElementById('modalGrid').innerHTML = html;
-            document.getElementById('playerModal').style.display = 'flex';
-        }
-
-        function updateList() {
-            const container = document.getElementById('list-container');
-            const q = document.getElementById('searchBox').value.toLowerCase();
-            container.innerHTML = "";
-            PLAYERS_DATABASE.filter(p => p.name.toLowerCase().includes(q)).forEach((p) => {
-                const idx = PLAYERS_DATABASE.findIndex(x => x.name === p.name);
-                const ranksHtml = ALL_GAMEMODES.map(gm => {
-                    const data = getTierData(p.tiers[gm]);
-                    return `<div class="tier-tag ${data.class}">${gmIcons[gm]} ${data.display}</div>`;
-                }).join('');
-                container.innerHTML += `
-                    <div class="player-row" onclick="openPlayerPage('${p.name}')">
-                        <div class="rank-id ${idx === 0 ? 'rank-1' : ''}">${idx === 0 ? '🏆' : '#' + (idx + 1)}</div>
-                        <div class="player-name">${p.name}</div>
-                        <div class="multi-ranks">${ranksHtml}</div>
-                    </div>`;
-            });
-        }
-
-        window.onclick = function(e) { if (e.target.className === 'modal') e.target.style.display = 'none'; }
         updateList();
     </script>
 </body>
