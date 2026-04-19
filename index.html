@@ -6,153 +6,27 @@
     <title>Ketchuptiers</title>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700;800&family=Inter:wght@400;900&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #030303;
-            --accent: #ff0000;
-            --accent-glow: rgba(255, 0, 0, 0.4);
-            --gold: #ffcc00;
-            --glass: rgba(255, 255, 255, 0.03);
-            --border: rgba(255, 255, 255, 0.1);
-        }
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-        body {
-            background-color: var(--bg);
-            color: white;
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            overflow-x: hidden;
-            padding: 40px 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        body::before {
-            content: "";
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: radial-gradient(circle at center, var(--accent-glow) 0%, transparent 60%);
-            animation: drift 15s infinite alternate ease-in-out;
-            z-index: -1;
-            pointer-events: none;
-        }
-        @keyframes drift {
-            from { transform: scale(1) translate(-10%, -10%); }
-            to { transform: scale(1.2) translate(10%, 10%); }
-        }
-        .header-title {
-            font-family: 'Rajdhani', sans-serif;
-            font-size: clamp(30px, 7vw, 64px);
-            font-weight: 800;
-            letter-spacing: clamp(2px, 2vw, 12px);
-            text-transform: uppercase;
-            color: var(--accent);
-            text-shadow: 0 0 30px var(--accent-glow);
-            margin-bottom: 30px;
-            text-align: center;
-            padding-top: 15px;
-        }
-        .menu-btn {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            cursor: pointer;
-            background: var(--glass);
-            border: 1px solid var(--border);
-            padding: 10px;
-            border-radius: 12px;
-            backdrop-filter: blur(10px);
-            transition: 0.3s;
-        }
+        :root { --bg: #030303; --accent: #ff0000; --accent-glow: rgba(255, 0, 0, 0.4); --gold: #ffcc00; --glass: rgba(255, 255, 255, 0.03); --border: rgba(255, 255, 255, 0.1); }
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg); color: white; font-family: 'Inter', sans-serif; min-height: 100vh; overflow-x: hidden; padding: 40px 15px; display: flex; flex-direction: column; align-items: center; }
+        body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, var(--accent-glow) 0%, transparent 60%); animation: drift 15s infinite alternate ease-in-out; z-index: -1; pointer-events: none; }
+        @keyframes drift { from { transform: scale(1) translate(-10%, -10%); } to { transform: scale(1.2) translate(10%, 10%); } }
+        .header-title { font-family: 'Rajdhani', sans-serif; font-size: clamp(30px, 7vw, 64px); font-weight: 800; letter-spacing: clamp(2px, 2vw, 12px); text-transform: uppercase; color: var(--accent); text-shadow: 0 0 30px var(--accent-glow); margin-bottom: 30px; text-align: center; padding-top: 15px; }
+        .menu-btn { position: fixed; top: 20px; right: 20px; z-index: 1000; cursor: pointer; background: var(--glass); border: 1px solid var(--border); padding: 10px; border-radius: 12px; backdrop-filter: blur(10px); transition: 0.3s; }
         .menu-btn div { width: 22px; height: 2px; background-color: white; margin: 5px 0; transition: 0.4s; }
-        .sidebar-overlay {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 998;
-            display: none;
-        }
+        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 998; display: none; }
         .sidebar-overlay.active { display: block; }
-        .sidebar {
-            position: fixed;
-            top: 0;
-            right: -320px;
-            width: 300px;
-            height: 100%;
-            background: rgba(10, 0, 0, 0.98);
-            backdrop-filter: blur(25px);
-            border-left: 1px solid var(--accent);
-            z-index: 999;
-            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            padding: 80px 25px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            overflow-y: auto;
-        }
+        .sidebar { position: fixed; top: 0; right: -320px; width: 300px; height: 100%; background: rgba(10, 0, 0, 0.98); backdrop-filter: blur(25px); border-left: 1px solid var(--accent); z-index: 999; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); padding: 80px 25px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; }
         .sidebar.active { right: 0; }
         .sidebar h2 { font-family: 'Rajdhani', sans-serif; color: var(--accent); font-size: 22px; }
         .sidebar p { font-size: 13px; color: #ccc; line-height: 1.5; }
-        .sidebar .server-ip {
-            background: rgba(255, 0, 0, 0.1);
-            padding: 12px;
-            border: 1px dashed var(--accent);
-            color: var(--accent);
-            text-align: center;
-            font-family: 'Rajdhani', sans-serif;
-            font-weight: 800;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-        .search-container {
-            width: 100%;
-            max-width: 900px;
-            margin-bottom: 30px;
-            display: flex;
-            justify-content: center;
-        }
-        #searchBox {
-            width: 100%;
-            max-width: 500px;
-            padding: 14px 24px;
-            background: var(--glass);
-            border: 1px solid var(--border);
-            color: white;
-            border-radius: 30px;
-            outline: none;
-            backdrop-filter: blur(10px);
-            font-size: 16px;
-            transition: 0.3s;
-        }
+        .sidebar .server-ip { background: rgba(255, 0, 0, 0.1); padding: 12px; border: 1px dashed var(--accent); color: var(--accent); text-align: center; font-family: 'Rajdhani', sans-serif; font-weight: 800; border-radius: 8px; font-size: 14px; }
+        .search-container { width: 100%; max-width: 900px; margin-bottom: 30px; display: flex; justify-content: center; }
+        #searchBox { width: 100%; max-width: 500px; padding: 14px 24px; background: var(--glass); border: 1px solid var(--border); color: white; border-radius: 30px; outline: none; backdrop-filter: blur(10px); font-size: 16px; transition: 0.3s; }
         #searchBox:focus { border-color: var(--accent); box-shadow: 0 0 20px rgba(255, 0, 0, 0.2); }
         #searchBox::placeholder { color: #666; }
-        .leaderboard-container {
-            width: 100%;
-            max-width: 900px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        .player-row {
-            display: grid;
-            grid-template-columns: 50px 1.2fr 3.8fr;
-            align-items: center;
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            padding: 18px 22px;
-            border-radius: 18px;
-            cursor: pointer;
-            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+        .leaderboard-container { width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 15px; }
+        .player-row { display: grid; grid-template-columns: 50px 1.2fr 3.8fr; align-items: center; background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--border); padding: 18px 22px; border-radius: 18px; cursor: pointer; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .player-row:hover { background: rgba(255, 0, 0, 0.07); border-color: rgba(255,0,0,0.4); }
         .player-row:active { transform: scale(0.98); background: rgba(255, 0, 0, 0.1); border-color: var(--accent); }
         .rank-id { font-family: 'Rajdhani', sans-serif; font-weight: 800; font-size: 20px; text-align: center; }
@@ -160,80 +34,21 @@
         .rank-other { color: #555; }
         .player-name { font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 700; text-transform: uppercase; color: #eee; }
         .multi-ranks { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
-        .tier-tag {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 9px;
-            font-weight: 800;
-            padding: 5px 10px;
-            border-radius: 8px;
-            background: rgba(0, 0, 0, 0.5);
-            font-family: 'Rajdhani', sans-serif;
-            transition: 0.2s;
-            text-transform: uppercase;
-        }
+        .tier-tag { display: flex; align-items: center; gap: 5px; font-size: 9px; font-weight: 800; padding: 5px 10px; border-radius: 8px; background: rgba(0, 0, 0, 0.5); font-family: 'Rajdhani', sans-serif; transition: 0.2s; text-transform: uppercase; }
         .gold-tag { color: var(--gold); border: 1px solid var(--gold); box-shadow: inset 0 0 5px rgba(255, 204, 0, 0.1); }
         .gray-tag { color: #888; border: 1px solid #444; }
-        .modal {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
-            z-index: 2000;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            backdrop-filter: blur(20px);
-        }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(20px); }
         .modal.open { display: flex; }
-        .modal-content {
-            background: #080808;
-            border: 1px solid var(--accent);
-            padding: 40px 30px;
-            border-radius: 25px;
-            width: 90%;
-            max-width: 450px;
-            position: relative;
-            box-shadow: 0 0 50px rgba(255, 0, 0, 0.2);
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        .close-modal {
-            position: absolute;
-            top: 20px; right: 20px;
-            cursor: pointer;
-            font-size: 28px;
-            color: var(--accent);
-            opacity: 0.6;
-            line-height: 1;
-            z-index: 1;
-        }
+        .modal-content { background: #080808; border: 1px solid var(--accent); padding: 40px 30px; border-radius: 25px; width: 90%; max-width: 450px; position: relative; box-shadow: 0 0 50px rgba(255, 0, 0, 0.2); max-height: 90vh; overflow-y: auto; }
+        .close-modal { position: absolute; top: 20px; right: 20px; cursor: pointer; font-size: 28px; color: var(--accent); opacity: 0.6; line-height: 1; z-index: 1; }
         .close-modal:hover { opacity: 1; }
-        .no-results {
-            color: #555;
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 18px;
-            text-align: center;
-            margin-top: 40px;
-        }
-        @media (max-width: 768px) {
-            .player-row {
-                grid-template-columns: 40px 1fr;
-                grid-template-rows: auto auto;
-                padding: 15px;
-            }
-            .multi-ranks {
-                grid-column: 1 / span 2;
-                justify-content: center;
-                margin-top: 12px;
-                gap: 6px;
-            }
-            .player-name {
-                font-size: 15px;
-                text-align: center;
-                width: 100%;
-            }
-        }
+        .no-results { color: #555; font-family: 'Rajdhani', sans-serif; font-size: 18px; text-align: center; margin-top: 40px; }
+        .admin-btn { position: fixed; bottom: 20px; right: 20px; z-index: 1000; background: rgba(255,0,0,0.15); border: 1px solid var(--accent); color: var(--accent); padding: 10px 18px; border-radius: 12px; cursor: pointer; font-family: 'Rajdhani', sans-serif; font-weight: 800; font-size: 13px; }
+        .input-field { width: 100%; padding: 10px 15px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: white; border-radius: 10px; outline: none; font-family: 'Inter', sans-serif; font-size: 14px; margin-bottom: 10px; }
+        .input-field:focus { border-color: var(--accent); }
+        .btn-red { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 10px; font-family: 'Rajdhani', sans-serif; font-weight: 800; font-size: 16px; cursor: pointer; margin-top: 5px; }
+        .btn-gray { width: 100%; padding: 12px; background: #222; color: white; border: 1px solid #444; border-radius: 10px; font-family: 'Rajdhani', sans-serif; font-weight: 800; font-size: 16px; cursor: pointer; margin-top: 5px; }
+        @media (max-width: 768px) { .player-row { grid-template-columns: 40px 1fr; grid-template-rows: auto auto; padding: 15px; } .multi-ranks { grid-column: 1 / span 2; justify-content: center; margin-top: 12px; gap: 6px; } .player-name { font-size: 15px; text-align: center; width: 100%; } }
     </style>
 </head>
 <body>
@@ -241,9 +56,7 @@
 <div class="menu-btn" id="menuBtn" onclick="toggleSidebar()">
     <div></div><div></div><div></div>
 </div>
-
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-
 <div class="sidebar" id="sidebar">
     <h2>Information</h2>
     <p>&#8226; Bedrock players: <b>(Bedrock)</b></p>
@@ -252,34 +65,49 @@
     <div class="server-ip">mc.voidsent.net</div>
     <hr style="border:0;border-top:1px solid var(--border);margin:10px 0">
     <h2>Contact &amp; Help</h2>
-    <div onclick="openHelp()" style="display:inline-block;padding:10px 20px;background-color:#333;border:1px solid #555;color:white;border-radius:5px;font-family:'Inter',sans-serif;font-weight:700;font-size:12px;text-align:center;cursor:pointer;margin-bottom:10px">
-        HOW TO GET TESTED
-    </div>
-    <a href="mailto:pekkakissa710@gmail.com" style="display:inline-block;padding:10px 20px;background-color:#db4437;color:white;text-decoration:none;border-radius:5px;font-family:'Inter',sans-serif;font-weight:700;font-size:12px;text-align:center">
-        SEND EMAIL
-    </a>
-    <a href="https://discord.gg/7jtUDRCbu" target="_blank" style="display:inline-block;padding:10px 20px;background-color:#5865F2;color:white;text-decoration:none;border-radius:5px;font-family:'Inter',sans-serif;font-weight:700;font-size:12px;text-align:center">
-        JOIN DISCORD
-    </a>
+    <div onclick="openHelp()" style="display:inline-block;padding:10px 20px;background-color:#333;border:1px solid #555;color:white;border-radius:5px;font-family:'Inter',sans-serif;font-weight:700;font-size:12px;text-align:center;cursor:pointer;margin-bottom:10px">HOW TO GET TESTED</div>
+    <a href="mailto:pekkakissa710@gmail.com" style="display:inline-block;padding:10px 20px;background-color:#db4437;color:white;text-decoration:none;border-radius:5px;font-family:'Inter',sans-serif;font-weight:700;font-size:12px;text-align:center">SEND EMAIL</a>
+    <a href="https://discord.gg/7jtUDRCbu" target="_blank" style="display:inline-block;padding:10px 20px;background-color:#5865F2;color:white;text-decoration:none;border-radius:5px;font-family:'Inter',sans-serif;font-weight:700;font-size:12px;text-align:center">JOIN DISCORD</a>
 </div>
 
 <h1 class="header-title">Ketchuptiers</h1>
-
 <div class="search-container">
     <input type="text" id="searchBox" placeholder="Search players..." oninput="updateList()" onkeyup="updateList()">
 </div>
-
 <div class="leaderboard-container" id="list-container"></div>
+<button class="admin-btn" onclick="openAdmin(null)">+ ADD PLAYER</button>
 
+<!-- Player Modal -->
 <div class="modal" id="playerModal">
     <div class="modal-content">
         <span class="close-modal" onclick="closeModal()">&#215;</span>
         <h2 id="modalName" style="font-family:'Rajdhani',sans-serif;font-size:26px;color:var(--accent);text-transform:uppercase;text-align:center;margin-bottom:5px"></h2>
         <p id="modalRank" style="color:var(--gold);margin-bottom:25px;font-family:'Rajdhani',sans-serif;font-weight:800;text-align:center;font-size:14px;letter-spacing:1px"></p>
         <div id="modalGrid" style="display:grid;grid-template-columns:1fr;gap:10px"></div>
+        <button class="btn-red" style="margin-top:20px" onclick="editCurrentPlayer()">✏ EDIT PLAYER</button>
+        <button class="btn-gray" style="margin-top:8px" onclick="deletePlayer()">🗑 DELETE PLAYER</button>
     </div>
 </div>
 
+<!-- Admin Modal -->
+<div class="modal" id="adminModal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeAdmin()">&#215;</span>
+        <h2 id="adminTitle" style="font-family:'Rajdhani',sans-serif;font-size:26px;color:var(--accent);text-transform:uppercase;text-align:center;margin-bottom:20px">Add Player</h2>
+        <input class="input-field" id="adminName" placeholder="Player name (e.g. MrKetsuppi)">
+        <input class="input-field" id="adminPassword" type="password" placeholder="Admin password">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+            <div><label style="font-size:11px;color:#888;font-family:'Rajdhani',sans-serif">⚔ SWORD</label><input class="input-field" id="t_Sword" placeholder="e.g. HT5"></div>
+            <div><label style="font-size:11px;color:#888;font-family:'Rajdhani',sans-serif">💎 CRYSTAL</label><input class="input-field" id="t_Crystal" placeholder="e.g. LT4"></div>
+            <div><label style="font-size:11px;color:#888;font-family:'Rajdhani',sans-serif">🪓 AXE</label><input class="input-field" id="t_Axe" placeholder="e.g. HT5"></div>
+            <div><label style="font-size:11px;color:#888;font-family:'Rajdhani',sans-serif">🔨 MACE</label><input class="input-field" id="t_Mace" placeholder="e.g. LT5"></div>
+            <div><label style="font-size:11px;color:#888;font-family:'Rajdhani',sans-serif">🍎 UHC</label><input class="input-field" id="t_UHC" placeholder="e.g. LT5"></div>
+        </div>
+        <button class="btn-red" onclick="savePlayer()">SAVE PLAYER</button>
+    </div>
+</div>
+
+<!-- Help Modal -->
 <div class="modal" id="helpModal">
     <div class="modal-content">
         <span class="close-modal" onclick="closeHelp()">&#215;</span>
@@ -296,91 +124,87 @@
 </div>
 
 <script>
-var PLAYERS_DATABASE = [
-    { name: "MrKetsuppi (Cracked)",    tiers: { Sword: "HT5", Crystal: "LT4", Axe: "HT5", UHC: "LT5", Mace: "LT5" } },
-    { name: "Kroos_vangoon (Cracked)", tiers: { Sword: "LT4", Crystal: "LT4", Axe: "HT5", UHC: "none", Mace: "none" } },
-    { name: "YEHORPROMAX (Cracked)",   tiers: { Sword: "LT5", Crystal: "LT5", Axe: "LT5", UHC: "LT5", Mace: "LT5" } }
-];
-
+var PLAYERS_DATABASE = [];
+var API = "https://tiers-production.up.railway.app";
 var ALL_GAMEMODES = ["Sword", "Crystal", "Axe", "UHC", "Mace"];
 var gmIcons = { Sword: "&#9876;", Crystal: "&#128302;", Axe: "&#129683;", Mace: "&#128296;", UHC: "&#127822;" };
+var currentPlayerIndex = -1;
 
+function loadPlayers() {
+    fetch(API + "/players").then(r => r.json()).then(function(data) { PLAYERS_DATABASE = data; updateList(); });
+}
 function toggleSidebar() {
-    var sidebar = document.getElementById('sidebar');
-    if (sidebar.classList.contains('active')) { closeSidebar(); }
-    else {
-        sidebar.classList.add('active');
-        document.getElementById('sidebarOverlay').classList.add('active');
-        document.body.style.overflow = 'hidden';
-    }
+    var s = document.getElementById('sidebar');
+    if (s.classList.contains('active')) closeSidebar();
+    else { s.classList.add('active'); document.getElementById('sidebarOverlay').classList.add('active'); document.body.style.overflow = 'hidden'; }
 }
-function closeSidebar() {
-    document.getElementById('sidebar').classList.remove('active');
-    document.getElementById('sidebarOverlay').classList.remove('active');
-    document.body.style.overflow = '';
-}
-function getTierData(tierVal) {
-    var val = (tierVal || "none").toLowerCase();
-    var isUnranked = (val === "none" || val === "unranked");
-    return { cls: isUnranked ? "gray-tag" : "gold-tag", display: isUnranked ? "Unranked" : tierVal };
-}
+function closeSidebar() { document.getElementById('sidebar').classList.remove('active'); document.getElementById('sidebarOverlay').classList.remove('active'); document.body.style.overflow = ''; }
+function getTierData(v) { var val = (v||"none").toLowerCase(); var u = val==="none"||val==="unranked"; return { cls: u?"gray-tag":"gold-tag", display: u?"Unranked":v }; }
 function openPlayerPage(index) {
-    var p = PLAYERS_DATABASE[index];
-    if (!p) return;
+    var p = PLAYERS_DATABASE[index]; if (!p) return;
+    currentPlayerIndex = index;
     document.getElementById('modalName').innerText = p.name;
     document.getElementById('modalRank').innerText = "GLOBAL POSITION — #" + (index + 1);
     var html = "";
-    ALL_GAMEMODES.forEach(function(gm) {
-        var data = getTierData(p.tiers[gm]);
-        html += '<div class="tier-tag ' + data.cls + '" style="justify-content:space-between;font-size:12px;padding:12px;border-radius:12px"><span>' + gmIcons[gm] + ' ' + gm + '</span><span>' + data.display + '</span></div>';
-    });
+    ALL_GAMEMODES.forEach(function(gm) { var d = getTierData(p.tiers[gm]); html += '<div class="tier-tag '+d.cls+'" style="justify-content:space-between;font-size:12px;padding:12px;border-radius:12px"><span>'+gmIcons[gm]+' '+gm+'</span><span>'+d.display+'</span></div>'; });
     document.getElementById('modalGrid').innerHTML = html;
     document.getElementById('playerModal').classList.add('open');
     document.body.style.overflow = 'hidden';
 }
-function closeModal() {
-    document.getElementById('playerModal').classList.remove('open');
-    document.body.style.overflow = '';
+function closeModal() { document.getElementById('playerModal').classList.remove('open'); document.body.style.overflow = ''; }
+function editCurrentPlayer() {
+    var p = PLAYERS_DATABASE[currentPlayerIndex]; if (!p) return;
+    closeModal();
+    openAdmin(p);
 }
-function openHelp() {
-    closeSidebar();
-    document.getElementById('helpModal').classList.add('open');
+function openAdmin(player) {
+    document.getElementById('adminTitle').innerText = player ? 'Edit Player' : 'Add Player';
+    document.getElementById('adminName').value = player ? player.name : '';
+    document.getElementById('adminName').disabled = !!player;
+    document.getElementById('adminPassword').value = '';
+    ALL_GAMEMODES.forEach(function(gm) { document.getElementById('t_'+gm).value = player ? (player.tiers[gm] === 'none' ? '' : player.tiers[gm]) : ''; });
+    document.getElementById('adminModal').classList.add('open');
     document.body.style.overflow = 'hidden';
 }
-function closeHelp() {
-    document.getElementById('helpModal').classList.remove('open');
-    document.body.style.overflow = '';
+function closeAdmin() { document.getElementById('adminModal').classList.remove('open'); document.getElementById('adminName').disabled = false; document.body.style.overflow = ''; }
+function savePlayer() {
+    var name = document.getElementById('adminName').value.trim();
+    var pass = document.getElementById('adminPassword').value;
+    if (!name) { alert('Enter player name!'); return; }
+    var tiers = {};
+    ALL_GAMEMODES.forEach(function(gm) { tiers[gm] = document.getElementById('t_'+gm).value.trim() || "none"; });
+    fetch(API + "/players", { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, tiers, password: pass }) })
+        .then(r => r.json()).then(function(res) { if (res.error) { alert('Wrong password!'); return; } closeAdmin(); loadPlayers(); });
 }
+function deletePlayer() {
+    var p = PLAYERS_DATABASE[currentPlayerIndex]; if (!p) return;
+    var pass = prompt('Admin password:');
+    fetch(API + "/players/" + encodeURIComponent(p.name), { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pass }) })
+        .then(r => r.json()).then(function(res) { if (res.error) { alert('Wrong password!'); return; } closeModal(); loadPlayers(); });
+}
+function openHelp() { closeSidebar(); document.getElementById('helpModal').classList.add('open'); document.body.style.overflow = 'hidden'; }
+function closeHelp() { document.getElementById('helpModal').classList.remove('open'); document.body.style.overflow = ''; }
 function updateList() {
     var container = document.getElementById('list-container');
     var q = document.getElementById('searchBox').value.toLowerCase();
     container.innerHTML = "";
-    var filtered = PLAYERS_DATABASE.map(function(p, i) { return { p: p, i: i }; })
-        .filter(function(x) { return x.p.name.toLowerCase().indexOf(q) !== -1; });
-    if (filtered.length === 0) {
-        container.innerHTML = '<div class="no-results">No players found</div>';
-        return;
-    }
+    var filtered = PLAYERS_DATABASE.map(function(p,i){return{p,i}}).filter(function(x){return x.p.name.toLowerCase().indexOf(q)!==-1});
+    if (!filtered.length) { container.innerHTML = '<div class="no-results">No players found</div>'; return; }
     filtered.forEach(function(x) {
-        var p = x.p; var i = x.i;
-        var position = i + 1;
-        var rIcon = position === 1 ? '&#127942;' : '#' + position;
-        var rClass = position === 1 ? 'rank-1' : 'rank-other';
-        var ranksHtml = ALL_GAMEMODES.map(function(gm) {
-            var data = getTierData(p.tiers[gm]);
-            return '<div class="tier-tag ' + data.cls + '">' + gmIcons[gm] + ' ' + data.display + '</div>';
-        }).join('');
-        var row = document.createElement('div');
-        row.className = 'player-row';
-        row.innerHTML = '<div class="rank-id ' + rClass + '">' + rIcon + '</div><div class="player-name">' + p.name + '</div><div class="multi-ranks">' + ranksHtml + '</div>';
-        row.addEventListener('click', (function(idx) { return function() { openPlayerPage(idx); }; })(i));
+        var p=x.p; var i=x.i; var pos=i+1;
+        var rIcon=pos===1?'&#127942;':'#'+pos; var rClass=pos===1?'rank-1':'rank-other';
+        var ranksHtml=ALL_GAMEMODES.map(function(gm){var d=getTierData(p.tiers[gm]);return'<div class="tier-tag '+d.cls+'">'+gmIcons[gm]+' '+d.display+'</div>';}).join('');
+        var row=document.createElement('div'); row.className='player-row';
+        row.innerHTML='<div class="rank-id '+rClass+'">'+rIcon+'</div><div class="player-name">'+p.name+'</div><div class="multi-ranks">'+ranksHtml+'</div>';
+        row.addEventListener('click',(function(idx){return function(){openPlayerPage(idx)}})(i));
         container.appendChild(row);
     });
 }
-document.getElementById('playerModal').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
-document.getElementById('helpModal').addEventListener('click', function(e) { if (e.target === this) closeHelp(); });
-document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeModal(); closeHelp(); closeSidebar(); } });
-updateList();
+document.getElementById('playerModal').addEventListener('click',function(e){if(e.target===this)closeModal()});
+document.getElementById('adminModal').addEventListener('click',function(e){if(e.target===this)closeAdmin()});
+document.getElementById('helpModal').addEventListener('click',function(e){if(e.target===this)closeHelp()});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeModal();closeHelp();closeSidebar();closeAdmin()}});
+loadPlayers();
 </script>
 </body>
 </html>
