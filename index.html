@@ -43,6 +43,11 @@
         .close-modal { position: absolute; top: 20px; right: 20px; cursor: pointer; font-size: 28px; color: var(--accent); opacity: 0.6; line-height: 1; z-index: 1; }
         .close-modal:hover { opacity: 1; }
         .no-results { color: #555; font-family: 'Rajdhani', sans-serif; font-size: 18px; text-align: center; margin-top: 40px; }
+        .admin-field { display: flex; flex-direction: column; gap: 5px; }
+        .admin-field label { font-family: 'Rajdhani', sans-serif; font-size: 13px; color: #888; text-transform: uppercase; }
+        .admin-field input { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: white; padding: 10px 14px; border-radius: 10px; font-size: 14px; outline: none; }
+        .admin-field input:focus { border-color: var(--accent); }
+        .admin-btn { padding: 12px; border-radius: 12px; border: none; font-family: 'Rajdhani', sans-serif; font-weight: 800; font-size: 14px; cursor: pointer; transition: 0.2s; }
         @media (max-width: 768px) { .player-row { grid-template-columns: 40px 1fr; grid-template-rows: auto auto; padding: 15px; } .multi-ranks { grid-column: 1 / span 2; justify-content: center; margin-top: 12px; gap: 6px; } .player-name { font-size: 15px; text-align: center; width: 100%; } }
     </style>
 </head>
@@ -63,6 +68,8 @@
     <div onclick="openHelp()" style="display:inline-block;padding:10px 20px;background-color:#333;border:1px solid #555;color:white;border-radius:5px;font-family:'Inter',sans-serif;font-weight:700;font-size:12px;text-align:center;cursor:pointer;margin-bottom:10px">HOW TO GET TESTED</div>
     <a href="mailto:pekkakissa710@gmail.com" style="display:inline-block;padding:10px 20px;background-color:#db4437;color:white;text-decoration:none;border-radius:5px;font-family:'Inter',sans-serif;font-weight:700;font-size:12px;text-align:center">SEND EMAIL</a>
     <a href="https://discord.gg/7jtUDRCbu" target="_blank" style="display:inline-block;padding:10px 20px;background-color:#5865F2;color:white;text-decoration:none;border-radius:5px;font-family:'Inter',sans-serif;font-weight:700;font-size:12px;text-align:center">JOIN DISCORD</a>
+    <hr style="border:0;border-top:1px solid var(--border);margin:10px 0">
+    <button id="addBtn" class="admin-btn" style="background:var(--accent);color:white">+ ADD PLAYER</button>
 </div>
 
 <h1 class="header-title">Ketchuptiers</h1>
@@ -71,15 +78,39 @@
 </div>
 <div class="leaderboard-container" id="list-container"></div>
 
+<!-- Player Modal -->
 <div class="modal" id="playerModal">
     <div class="modal-content">
         <span class="close-modal" onclick="closeModal()">&#215;</span>
         <h2 id="modalName" style="font-family:'Rajdhani',sans-serif;font-size:26px;color:var(--accent);text-transform:uppercase;text-align:center;margin-bottom:5px"></h2>
         <p id="modalRank" style="color:var(--gold);margin-bottom:25px;font-family:'Rajdhani',sans-serif;font-weight:800;text-align:center;font-size:14px;letter-spacing:1px"></p>
-        <div id="modalGrid" style="display:grid;grid-template-columns:1fr;gap:10px"></div>
+        <div id="modalGrid" style="display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:20px"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <button id="editBtn" class="admin-btn" style="background:rgba(255,255,255,0.1);color:white">✏️ EDIT</button>
+            <button id="deleteBtn" class="admin-btn" style="background:rgba(255,0,0,0.2);color:var(--accent)">🗑️ DELETE</button>
+        </div>
     </div>
 </div>
 
+<!-- Admin Modal -->
+<div class="modal" id="adminModal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeAdmin()">&#215;</span>
+        <h2 id="adminTitle" style="font-family:'Rajdhani',sans-serif;font-size:26px;color:var(--accent);text-transform:uppercase;text-align:center;margin-bottom:20px"></h2>
+        <div style="display:flex;flex-direction:column;gap:12px">
+            <div class="admin-field"><label>Player Name</label><input id="adminName" type="text" placeholder="Username"></div>
+            <div class="admin-field"><label>🗡️ Sword</label><input id="t_Sword" type="text" placeholder="e.g. HT1, LT2..."></div>
+            <div class="admin-field"><label>&#128302; Crystal</label><input id="t_Crystal" type="text" placeholder="e.g. HT1, LT2..."></div>
+            <div class="admin-field"><label>&#129683; Axe</label><input id="t_Axe" type="text" placeholder="e.g. HT1, LT2..."></div>
+            <div class="admin-field"><label>&#128296; Mace</label><input id="t_Mace" type="text" placeholder="e.g. HT1, LT2..."></div>
+            <div class="admin-field"><label>&#127822; UHC</label><input id="t_UHC" type="text" placeholder="e.g. HT1, LT2..."></div>
+            <div class="admin-field"><label>🔑 Admin Password</label><input id="adminPassword" type="password" placeholder="Password"></div>
+            <button id="saveBtn" class="admin-btn" style="background:var(--accent);color:white;margin-top:5px">SAVE</button>
+        </div>
+    </div>
+</div>
+
+<!-- Help Modal -->
 <div class="modal" id="helpModal">
     <div class="modal-content">
         <span class="close-modal" onclick="closeHelp()">&#215;</span>
@@ -107,6 +138,123 @@ function loadPlayers() {
         .then(function(r) { return r.json(); })
         .then(function(data) { PLAYERS_DATABASE = data; updateList(); })
         .catch(function() { document.getElementById('list-container').innerHTML = '<div class="no-results">Could not connect to server</div>'; });
+}
+function toggleSidebar() {
+    var s = document.getElementById('sidebar');
+    if (s.classList.contains('active')) closeSidebar();
+    else { s.classList.add('active'); document.getElementById('sidebarOverlay').classList.add('active'); document.body.style.overflow = 'hidden'; }
+}
+function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('active');
+    document.getElementById('sidebarOverlay').classList.remove('active');
+    document.body.style.overflow = '';
+}
+function getTierData(v) {
+    var val = (v || "none").toLowerCase();
+    var u = val === "none" || val === "unranked";
+    return { cls: u ? "gray-tag" : "gold-tag", display: u ? "Unranked" : v };
+}
+function openPlayerPage(index) {
+    var p = PLAYERS_DATABASE[index]; if (!p) return;
+    currentPlayerIndex = index;
+    document.getElementById('modalName').innerText = p.name;
+    document.getElementById('modalRank').innerText = "GLOBAL POSITION — #" + (index + 1);
+    var html = "";
+    ALL_GAMEMODES.forEach(function(gm) {
+        var d = getTierData(p.tiers[gm]);
+        html += '<div class="tier-tag ' + d.cls + '" style="justify-content:space-between;font-size:12px;padding:12px;border-radius:12px"><span>' + gmIcons[gm] + ' ' + gm + '</span><span>' + d.display + '</span></div>';
+    });
+    document.getElementById('modalGrid').innerHTML = html;
+    document.getElementById('playerModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+function closeModal() { document.getElementById('playerModal').classList.remove('open'); document.body.style.overflow = ''; }
+function openAdmin(player) {
+    document.getElementById('adminTitle').innerText = player ? 'Edit Player' : 'Add Player';
+    document.getElementById('adminName').value = player ? player.name : '';
+    document.getElementById('adminName').disabled = !!player;
+    document.getElementById('adminPassword').value = '';
+    ALL_GAMEMODES.forEach(function(gm) {
+        document.getElementById('t_' + gm).value = player ? (player.tiers[gm] === 'none' ? '' : player.tiers[gm]) : '';
+    });
+    document.getElementById('adminModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+function closeAdmin() {
+    document.getElementById('adminModal').classList.remove('open');
+    document.getElementById('adminName').disabled = false;
+    document.body.style.overflow = '';
+}
+function savePlayer() {
+    var name = document.getElementById('adminName').value.trim();
+    var pass = document.getElementById('adminPassword').value;
+    if (!name) { alert('Enter player name!'); return; }
+    var tiers = {};
+    ALL_GAMEMODES.forEach(function(gm) {
+        tiers[gm] = document.getElementById('t_' + gm).value.trim() || "none";
+    });
+    fetch(API + "/players", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name, tiers: tiers, password: pass })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        if (res.error) { alert('Wrong password!'); return; }
+        closeAdmin();
+        loadPlayers();
+    });
+}
+function deletePlayer() {
+    var p = PLAYERS_DATABASE[currentPlayerIndex]; if (!p) return;
+    var pass = prompt('Admin password:');
+    if (!pass) return;
+    fetch(API + "/players/" + encodeURIComponent(p.name), {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: pass })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        if (res.error) { alert('Wrong password!'); return; }
+        closeModal();
+        loadPlayers();
+    });
+}
+function openHelp() { closeSidebar(); document.getElementById('helpModal').classList.add('open'); document.body.style.overflow = 'hidden'; }
+function closeHelp() { document.getElementById('helpModal').classList.remove('open'); document.body.style.overflow = ''; }
+function updateList() {
+    var container = document.getElementById('list-container');
+    var q = document.getElementById('searchBox').value.toLowerCase();
+    container.innerHTML = "";
+    var filtered = PLAYERS_DATABASE.map(function(p, i) { return { p: p, i: i }; }).filter(function(x) { return x.p.name.toLowerCase().indexOf(q) !== -1; });
+    if (!filtered.length) { container.innerHTML = '<div class="no-results">No players found</div>'; return; }
+    filtered.forEach(function(x) {
+        var p = x.p; var i = x.i; var pos = i + 1;
+        var rIcon = pos === 1 ? '&#127942;' : '#' + pos;
+        var rClass = pos === 1 ? 'rank-1' : 'rank-other';
+        var ranksHtml = ALL_GAMEMODES.map(function(gm) { var d = getTierData(p.tiers[gm]); return '<div class="tier-tag ' + d.cls + '">' + gmIcons[gm] + ' ' + d.display + '</div>'; }).join('');
+        var row = document.createElement('div');
+        row.className = 'player-row';
+        row.innerHTML = '<div class="rank-id ' + rClass + '">' + rIcon + '</div><div class="player-name">' + p.name + '</div><div class="multi-ranks">' + ranksHtml + '</div>';
+        row.addEventListener('click', (function(idx) { return function() { openPlayerPage(idx); }; })(i));
+        container.appendChild(row);
+    });
+}
+
+document.getElementById('addBtn').addEventListener('click', function() { openAdmin(null); });
+document.getElementById('saveBtn').addEventListener('click', savePlayer);
+document.getElementById('editBtn').addEventListener('click', function() { var p = PLAYERS_DATABASE[currentPlayerIndex]; if (!p) return; closeModal(); openAdmin(p); });
+document.getElementById('deleteBtn').addEventListener('click', deletePlayer);
+document.getElementById('playerModal').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
+document.getElementById('adminModal').addEventListener('click', function(e) { if (e.target === this) closeAdmin(); });
+document.getElementById('helpModal').addEventListener('click', function(e) { if (e.target === this) closeHelp(); });
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeModal(); closeHelp(); closeSidebar(); closeAdmin(); } });
+
+loadPlayers();
+</script>
+</body>
+</html>        .catch(function() { document.getElementById('list-container').innerHTML = '<div class="no-results">Could not connect to server</div>'; });
 }
 
 function toggleSidebar() {
